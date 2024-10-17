@@ -13,7 +13,6 @@ import {
   QueryClientProvider,
   QueryClient,
 } from "@tanstack/react-query";
-import { Inter } from 'next/font/google'
 import { useState } from "react";
 import React, { useEffect, useMemo } from 'react';
 import { useWallet, WalletProvider } from '@tronweb3/tronwallet-adapter-react-hooks';

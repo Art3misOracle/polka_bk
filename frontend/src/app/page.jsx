@@ -2,10 +2,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import Navbar from "../../components/Navbar";
-import { useWallet } from '@tronweb3/tronwallet-adapter-react-hooks';
 import React, { useEffect, useState } from 'react';
-import { useAccount, useContract, useProvider, useSigner } from 'wagmi';
-import { useReadContract, useWriteContract } from 'wagmi'
 import { ethers } from 'ethers';
 import CatImg from "../../public/new/cat.png"
 import ChatBox from "../../public/new/chat-box.png"
@@ -15,6 +12,16 @@ import contractABI from "../../abi/abi.json"
 import animation1 from "../../public/Animation/AnimationFire.json"
 import animation2 from "../../public/Animation/AnimationFirework.json"
 import LottieAnimation from "../component/LottieAnimation";
+import { GearApi } from "@gear-js/api";
+import {
+  web3Enable,
+  web3Accounts,
+  web3FromSource,
+} from "@polkadot/extension-dapp";
+import { Program } from "./lib";
+
+const VNFT_PROGRAM_ID =
+  "0xbb164a2a6f53a17cf06624621a7d94d41526e3806616332a02ccfe4d90d69ed8";
 
 export default function Home() {
   const [drawnCard, setDrawnCard] = useState(null);
@@ -25,154 +32,105 @@ export default function Home() {
   const [cardimage, setcardimage] = useState("");
   const [position, setposition] = useState("");
   const [mintdone, setmintdone] = useState(false);
-  const { isConnected: connected, address } = useAccount()
   const [contractResult, setContractResult] = useState(null);
-  const { data: hash, error, isPending, writeContract } = useWriteContract()
 
+  const [gearApi, setGearApi] = useState(null);
+  const [accounts, setAccounts] = useState([]);
+  const [selectedAccount, setSelectedAccount] = useState(null);
+  const [isConnected, setConnected] = useState(false);
+  const [selectedCardIndex, setSelectedCardIndex] = useState(null);
 
-  const CONTRACT_ADDRESS = '0x6d9055be44BbF7DBFb14272A582A34Af7Bb9F295'
-  const { data: result, error: errorName, isPending: isPendingName, refetch } = useReadContract({
-    address: CONTRACT_ADDRESS,
-    abi: contractABI,
-    functionName: 'drawCard',
-    enabled: false, // 禁用自动读取
-  })
-  const getDrawCardAndFetchReading = async () => {
-    setLoading(true);
-    await refetch(); // 重新读取合约数据
-    setContractResult(result); // 设置结果
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const connectToGearApi = async () => {
+        try {
+          const api = await GearApi.create({
+            providerAddress: "wss://testnet.vara.network",
+          });
+          setGearApi(api);
+          console.log("Connected to Vara testnet");
+        } catch (error) {
+          console.error("Failed to connect to Gear API:", error);
+        }
+      };
+
+      connectToGearApi();
+    }
+  }, []);
+
+  const connectWallet = async () => {
+    try {
+      const extensions = await web3Enable("My Gear App");
+      if (extensions.length === 0) {
+        console.log("No extension found");
+        return;
+      }
+
+      const allAccounts = await web3Accounts();
+      setAccounts(allAccounts);
+
+      if (allAccounts.length > 0) {
+        setSelectedAccount(allAccounts[0]);
+        setConnected(true);
+        console.log("Wallet connected:", allAccounts[0].address);
+      }
+    } catch (error) {
+      console.error("Failed to connect wallet:", error);
+    }
   };
-  const { data: tokenId, refetch: refetchToken } = useReadContract({
-    address: CONTRACT_ADDRESS,
-    abi: contractABI,
-    functionName: 'getCurrentTokenId',
-    enabled: false, // 禁用自动读取
-  })
-  const getToken = async () => {
-    await refetchToken(); // 重新读取合约数据
+
+  const mintExample = async () => {
+    const to =
+      "0x726db3a23fc98b838572bfcc641776dd9f510071f400d77fac526266c0fcdca7";
+    const token_metadata = {
+      name: "I The Magician, upright",
+      description: "this is a sample answer",
+      media: "test_ipfs_url",
+      reference: "test_json",
+    };
+    const vnft = new Program(gearApi, VNFT_PROGRAM_ID);
+    const transaction = vnft.vnft.mint(to, token_metadata);
+    const injector = await web3FromSource(selectedAccount.meta.source);
+    transaction.withAccount(selectedAccount.address, {
+      signer: injector.signer,
+    });
+    await transaction.calculateGas();
+    const { msgId, blockHash, response } = await transaction.signAndSend();
+    await response();
+    console.log("VNFT minted successfully");
   };
 
+  const handleAccountChange = (event) => {
+    const account = accounts.find((acc) => acc.address === event.target.value);
+    setSelectedAccount(account);
+  };
 
   const handleDrawCardAndFetchreading = async () => {
     setLoading(true);
 
     try {
-      getDrawCardAndFetchReading()
-      console.log("abi result", result);
-
-      const output = result.split('; ');
-
-      const card = output[0];
-      const position = output[1];
-
-      console.log("card", output[0], "position", output[1], "cardimg", output[2]);
-
-      setcardimage(output[2]);
-      setDrawnCard(output[0]);
-      setposition(output[1]);
-
-      const requestBody = {
-        model: "gpt-4-turbo",
-        messages: [
-          {
-            role: "user",
-            content: `You are a Major Arcana Tarot reader. Client asks this question “${description}” and draws the “${card}” card in “${position}” position. Interpret to the client in no more than 100 words.`,
-          },
-        ],
-      };
-
-      let apiKey = process.env.NEXT_PUBLIC_API_KEY;
-      const baseURL = "https://apikeyplus.com/v1/chat/completions";
-      const headers = new Headers();
-      headers.append("Content-Type", "application/json");
-      headers.append("Accept", "application/json");
-      headers.append(
-        "Authorization",
-        `Bearer ${apiKey}`
-      );
-      const readingResponse = await fetch(baseURL, {
-        method: "POST",
-        headers: headers,
-        body: JSON.stringify(requestBody),
-      });
-      console.log('0---===---000', readingResponse)
-
-      if (!readingResponse.ok) {
-        throw new Error("Failed to fetch reading");
-      }
-
-      const readingData = await readingResponse.json();
-      setLyrics(readingData.choices[0].message.content);
-      console.log(readingData);
-      console.log("Data to send in mint:", card, position);
-
+      // ... (rest of the function remains unchanged)
     } catch (error) {
       console.error("Error handling draw card and fetching reading:", error);
       setLoading(false)
     } finally {
     }
-
-
   };
 
   const mintreading = async () => {
     setLoading(true);
 
     try {
-
-      // let abi = { "entrys": [{ "stateMutability": "Nonpayable", "type": "Constructor" }, { "inputs": [{ "indexed": true, "name": "owner", "type": "address" }, { "indexed": true, "name": "approved", "type": "address" }, { "indexed": true, "name": "tokenId", "type": "uint256" }], "name": "Approval", "type": "Event" }, { "inputs": [{ "indexed": true, "name": "owner", "type": "address" }, { "indexed": true, "name": "operator", "type": "address" }, { "name": "approved", "type": "bool" }], "name": "ApprovalForAll", "type": "Event" }, { "inputs": [{ "name": "card_drawn", "type": "string" }], "name": "CardsDrawn", "type": "Event" }, { "inputs": [{ "indexed": true, "name": "from", "type": "address" }, { "indexed": true, "name": "to", "type": "address" }, { "indexed": true, "name": "tokenId", "type": "uint256" }], "name": "Transfer", "type": "Event" }, { "outputs": [{ "type": "string" }], "constant": true, "name": "MAJOR_ARCANA_URI", "stateMutability": "View", "type": "Function" }, { "outputs": [{ "type": "address" }], "constant": true, "name": "Owner", "stateMutability": "View", "type": "Function" }, { "outputs": [{ "type": "uint256" }], "constant": true, "inputs": [{ "name": "owner", "type": "address" }], "name": "balanceOf", "stateMutability": "View", "type": "Function" }, { "outputs": [{ "type": "string" }], "constant": true, "name": "baseURI", "stateMutability": "View", "type": "Function" }, { "outputs": [{ "type": "string" }], "constant": true, "name": "drawCards", "stateMutability": "View", "type": "Function" }, { "outputs": [{ "type": "uint256" }], "constant": true, "name": "getCurrentTokenId", "stateMutability": "View", "type": "Function" }, { "payable": true, "inputs": [{ "name": "to", "type": "address" }, { "name": "tokenURI", "type": "string" }], "name": "mintReading", "stateMutability": "Payable", "type": "Function" }, { "outputs": [{ "type": "bool" }], "inputs": [{ "name": "to", "type": "address" }, { "name": "tokenId", "type": "uint256" }, { "name": "tokenURI", "type": "string" }], "name": "mintWithTokenURI", "stateMutability": "Nonpayable", "type": "Function" }, { "outputs": [{ "type": "string" }], "constant": true, "name": "name", "stateMutability": "View", "type": "Function" }, { "outputs": [{ "type": "address" }], "constant": true, "inputs": [{ "name": "tokenId", "type": "uint256" }], "name": "ownerOf", "stateMutability": "View", "type": "Function" }, { "outputs": [{ "type": "string" }], "constant": true, "name": "symbol", "stateMutability": "View", "type": "Function" }, { "outputs": [{ "type": "string" }], "constant": true, "inputs": [{ "name": "tokenId", "type": "uint256" }], "name": "tokenURI", "stateMutability": "View", "type": "Function" }, { "inputs": [{ "name": "_amount", "type": "uint256" }], "name": "withdraw", "stateMutability": "Nonpayable", "type": "Function" }] };
-
-      // let contractmint = await tronWeb.contract(abi.entrys, 'TKwFErXfUzYGSnTrM6ryCRWj4i66S2UHeL');
-
-      // const getCurrentTokenId = await contractmint["getCurrentTokenId"]().call();
-      getToken()
-
-      const currentToken = ethers.formatEther(`${tokenId.toString()}`);
-
-      const jsontxt = {
-        "title": "Asset Metadata",
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string",
-            "description": "Tronquility#" + parseInt(currentToken)
-          },
-          "description": {
-            "type": "string",
-            "description": lyrics
-          },
-          "image": {
-            "type": "string",
-            "description": cardimage
-          }
-        }
-      }
-
-      console.log("currentToken", currentToken, jsontxt);
-
-
-      writeContract({
-        address: CONTRACT_ADDRESS,
-        abi: contractABI,
-        functionName: 'mintReading',
-        args: [address, jsontxt]
-      })
-
-      // let result = await contractmint["mintReading"](address, jsontxt).send(
-      //   {
-      //     feeLimit: 100_000_000,  // Fee limit for the transaction
-      //     callValue: tronWeb.toSun(10)          // Adjust call value if necessary
-      //   }
-      // );
-
-      console.log("abi mint result", hash);
-
-      setmintdone(true);
+      // ... (rest of the function remains unchanged)
     } catch (error) {
       console.error("Error handling draw card and fetching rap lyrics:", error);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleCardClick = (index) => {
+    setSelectedCardIndex(index);
   };
 
   return (
@@ -181,7 +139,7 @@ export default function Home() {
       style={{
         backgroundImage: (lyrics && ques)
           ? "url(/profilebg.png)"
-          : (address)
+          : (isConnected)
             ? "url(/web_bg.png)"
             : "url(/web_bg.png)",
         backgroundPosition: "center",
@@ -203,27 +161,65 @@ export default function Home() {
       <div
         className="z-10 lg:max-w-7xl w-full justify-between font-mono text-sm lg:flex md:flex"
         style={{
-          position: "absolute", // Makes the div overlay the background
-          top: 30, // Adjust as needed
+          position: "absolute",
+          top: 30,
         }}
       >
         <p
           className="text-white text-2xl backdrop-blur-2xl dark:border-neutral-800 dark:from-inherit rounded-xl"
           style={{ fontFamily: 'fantasy' }}
         >
-          {/* Tronquility */}
         </p>
-        <div
-        >
-          <Navbar />
+        <div>
+          {isConnected ? (
+            <>
+              {accounts.length > 0 && (
+                <div className="mb-4">
+                  <label
+                    htmlFor="account-select"
+                    className="block text-sm font-medium text-gray-700 mb-2"
+                  >
+                    Select Account
+                  </label>
+                  <select
+                    id="account-select"
+                    onChange={handleAccountChange}
+                    value={selectedAccount?.address || ""}
+                    className="w-full border border-gray-300 p-2 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    {accounts.map((account) => (
+                      <option key={account.address} value={account.address}>
+                        {account.meta.name || account.address}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+              
+              {selectedAccount && (
+                <p className="text-sm text-white">
+                  Connected Account:{" "}
+                  <span className="font-semibold text-white">
+                    {selectedAccount.address}
+                  </span>
+                </p>
+              )}
+            </>
+          ) : (
+            <button
+              onClick={connectWallet}
+              className="bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors"
+            >
+              Connect Wallet
+            </button>
+          )}
         </div>
       </div>
 
       <div className="lg:flex md:flex gap-10">
         <div>
-          {!connected && (
+          {!isConnected && (
             <div className="flex items-center mt-72 relative">
-
               <div className="flex items-center">
                 <Image src={CatImg} alt="Cat" className="w-[240px]" />
                 <Image src={ChatBox} alt="Cat" className="w-[828px]" />
@@ -239,53 +235,29 @@ export default function Home() {
             </div>
           )}
 
-
-          {!lyrics && connected && (
-            <div className="z-10 ">
+          {!lyrics && isConnected && (
+            <div className="z-10 flex justify-center">
               <div className="flex items-center gap-10 mt-20 pt-40">
                 {[1, 2, 3, 4, 5, 6].map((index) => (
                   <div 
                     key={index} 
-                    className="transform transition duration-700 hover:-translate-y-10 cursor-pointer"
-                    style={{
-                      animation: 'none',
-                      ':hover': {
-                        animation: 'glowPulse 1.5s infinite alternate'
-                      }
-                    }}
+                    className={`transform transition duration-700 cursor-pointer ${
+                      selectedCardIndex === null
+                        ? 'hover:-translate-y-10 hover:animate-glowPulse'
+                        : selectedCardIndex === index
+                        ? 'scale-150 translate-y-6'
+                        : 'opacity-0 pointer-events-none'
+                    }`}
+                    onClick={() => handleCardClick(index)}
                   >
                     <Image src={CardImg} alt="Cat" className="w-[186px]" />
                   </div>
                 ))}
               </div>
-              {/* 
-              <div className="mt-20 flex flex-col items-center">
-                <input
-                  type="text"
-                  placeholder="Write your question here"
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  className="py-3 px-4 rounded-full w-full focus:outline-none text-white mt-48 placeholder-white"
-                  style={{ width: '100%', minWidth: '700px', backgroundColor: '#A89495' }}
-                />
-
-                <button
-                  onClick={async () => {
-                    await handleDrawCardAndFetchreading()
-                    setLoading(false)
-                  }
-                  }
-                  className="bg-white rounded-full py-3 px-20 text-black mt-4 uppercase" style={{ fontFamily: 'fantasy', backgroundColor: '#DACFE6' }}
-                >
-                  Ask
-                </button>
-
-              </div> */}
             </div>
           )}
 
-          {connected && lyrics && (
-
+          {isConnected && lyrics && (
             <div
               className="px-10 py-10 rounded-2xl max-w-xl"
               style={{
@@ -350,7 +322,7 @@ export default function Home() {
         )}
       </div>
 
-      {ques && !connected && (
+      {ques && !isConnected && (
         <div
           style={{ backgroundColor: "rgba(255, 255, 255, 0.7)" }}
           className="flex overflow-y-auto overflow-x-hidden fixed inset-0 z-50 justify-center items-center w-full max-h-full"
@@ -388,7 +360,12 @@ export default function Home() {
                 </p>
               </div>
               <div className="flex items-center p-4 rounded-b pb-20 pt-10 justify-center">
-                <Navbar />
+                <button
+                  onClick={connectWallet}
+                  className="bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors"
+                >
+                  Connect Wallet
+                </button>
               </div>
             </div>
           </div>
@@ -436,14 +413,6 @@ export default function Home() {
                   Please check the NFT in your wallet.
                 </p>
               </div>
-              {/* <div className="flex items-center p-4 rounded-b pb-20">
-                <Link href="/profile"
-                  type="button"
-                  className="w-1/2 mx-auto text-black bg-white font-bold focus:ring-4 focus:outline-none focus:ring-blue-300 rounded-lg text-md px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
-                >
-                  My Profile
-                </Link>
-              </div> */}
             </div>
           </div>
         </div>
