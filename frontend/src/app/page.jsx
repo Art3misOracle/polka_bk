@@ -13,6 +13,7 @@ import animation1 from "../../public/Animation/AnimationFire.json"
 import animation2 from "../../public/Animation/AnimationFirework.json"
 import LottieAnimation from "../component/LottieAnimation";
 import { GearApi } from "@gear-js/api";
+import Connected from "../component/Connected";
 import {
   web3Enable,
   web3Accounts,
@@ -236,25 +237,26 @@ export default function Home() {
           )}
 
           {!lyrics && isConnected && (
-            <div className="z-10 flex justify-center">
-              <div className="flex items-center gap-10 mt-20 pt-40">
-                {[1, 2, 3, 4, 5, 6].map((index) => (
-                  <div 
-                    key={index} 
-                    className={`transform transition duration-700 cursor-pointer ${
-                      selectedCardIndex === null
-                        ? 'hover:-translate-y-10 hover:animate-glowPulse'
-                        : selectedCardIndex === index
-                        ? 'scale-150 translate-y-6'
-                        : 'opacity-0 pointer-events-none'
-                    }`}
-                    onClick={() => handleCardClick(index)}
-                  >
-                    <Image src={CardImg} alt="Cat" className="w-[186px]" />
-                  </div>
-                ))}
-              </div>
-            </div>
+            <Connected isConnected={isConnected} lyrics={lyrics} />
+// <div className="z-10 flex justify-center">
+            //   <div className="flex items-center gap-10 mt-20 pt-40">
+            //     {[1, 2, 3, 4, 5, 6].map((index) => (
+            //       <div 
+            //         key={index} 
+            //         className={`transform transition duration-700 cursor-pointer ${
+            //           selectedCardIndex === null
+            //             ? 'hover:-translate-y-10 hover:animate-glowPulse'
+            //             : selectedCardIndex === index
+            //             ? 'scale-150 translate-y-6'
+            //             : 'opacity-0 pointer-events-none'
+            //         }`}
+            //         onClick={() => handleCardClick(index)}
+            //       >
+            //         <Image src={CardImg} alt="Cat" className="w-[186px]" />
+            //       </div>
+            //     ))}
+            //   </div>
+            // </div>
           )}
 
           {isConnected && lyrics && (
