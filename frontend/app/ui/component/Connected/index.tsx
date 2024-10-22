@@ -73,7 +73,7 @@ const Connected: React.FC<ConnectedProps> = ({ isConnected, lyrics, getAi }) => 
                     <div className="bg-gradient-to-br from-gray-900 to-black p-12 rounded-3xl border-2 border-gray-700 shadow-2xl max-w-3xl w-full transform transition-all duration-300 ease-in-out hover:scale-105">
                         <h2 className="text-5xl font-bold mb-10 text-white text-center">Ask Your Question</h2>
                         <textarea
-                            className="w-full p-8 mb-10 text-black bg-gray-800 bg-opacity-70 border-2 border-gray-600 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent transition-all duration-300 ease-in-out resize-none text-2xl"
+                            className="w-full p-8 mb-10 text-black bg-gray-200 bg-opacity-70 border-2 border-gray-600 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent transition-all duration-300 ease-in-out resize-none text-2xl"
                             rows={6}
                             placeholder="Enter your question here..."
                             value={description}
@@ -93,7 +93,7 @@ const Connected: React.FC<ConnectedProps> = ({ isConnected, lyrics, getAi }) => 
                     <div className="text-white text-2xl">Loading...</div>
                 </div>
             )}
-            {showFate && (
+            {/* {showFate && (
                 <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center backdrop-blur-md z-50">
                     <div>
                         <Image src={ManImg} alt="Man" width={230} height={230} />
@@ -109,7 +109,7 @@ const Connected: React.FC<ConnectedProps> = ({ isConnected, lyrics, getAi }) => 
                         </div>
                     </div>
                 </div>
-            )}
+            )} */}
             {showCards && (
                 <div className="relative flex items-center gap-10 mt-20">
                     {[1, 2, 3, 4, 5, 6].map((index) => (
@@ -118,7 +118,7 @@ const Connected: React.FC<ConnectedProps> = ({ isConnected, lyrics, getAi }) => 
                             className={`transform transition duration-700 cursor-pointer ${selectedCardIndex === null
                                 ? 'hover:-translate-y-10 hover:animate-glowPulse'
                                 : selectedCardIndex === index
-                                    ? `scale-150 translate-y-[800px] absolute left-1/2 -translate-x-1/2 ${flippedCard !== index ? 'animate-glowPulse' : ''}`
+                                    ? `scale-150 translate-y-[10px] absolute left-1/2 -translate-x-1/2 ${flippedCard !== index ? 'animate-glowPulse' : ''}`
                                     : 'opacity-0 pointer-events-none'
                                 }`}
                             style={{
@@ -137,7 +137,7 @@ const Connected: React.FC<ConnectedProps> = ({ isConnected, lyrics, getAi }) => 
                             />
                             {
                                 flippedCard === index && (
-                                    <div className='w-full flex justify-center'>
+                                    <div className='w-full flex justify-center mt-16'>
                                         <div
                                             onClick={seeMyFate}
                                             className={`absolute bottom-0 text-center flex items-center justify-center transition-all duration-1000 ${buttonMoved ? 'translate-x-full opacity-0' : ''
