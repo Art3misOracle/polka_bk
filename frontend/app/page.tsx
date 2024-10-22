@@ -9,8 +9,6 @@ import animation1 from "@/public/Animation/AnimationFire.json"
 import LottieAnimation from "@/app/ui/component/LottieAnimation";
 import { GearApi } from "@gear-js/api";
 import Connected from "@/app/ui/component/Connected";
-import dynamic from 'next/dynamic';
-
 import { Program } from "@/app/lib";
 
 const VNFT_PROGRAM_ID =
@@ -25,8 +23,6 @@ export default function Home() {
   const [accounts, setAccounts] = useState<any[]>([]);
   const [selectedAccount, setSelectedAccount] = useState<any>(null);
   const [isConnected, setConnected] = useState(false);
-  const [description, setDescription] = useState("");
-  const [selectedCardIndex, setSelectedCardIndex] = useState(null);
 
   const handleDrawCardAndFetchreading = async (description: string) => {
     setLoading(true);
@@ -53,6 +49,11 @@ export default function Home() {
         ],
       };
       let apiKey = process.env.NEXT_PUBLIC_API_KEY;
+      if (!apiKey) {
+        console.error('API key is not set. Make sure NEXT_PUBLIC_API_KEY is defined in your .env.local file.');
+        throw new Error('API key is not set');
+      }
+      console.log('apiKey', apiKey);
       const baseURL = "https://api.openai.com/v1/chat/completions";
       const headers = new Headers();
       headers.append("Content-Type", "application/json");
@@ -66,12 +67,20 @@ export default function Home() {
         headers: headers,
         body: JSON.stringify(requestBody),
       });
-      console.log('0---===---000', readingResponse)
+
+      const readingData = await readingResponse.json();
+      const reading = readingData
+      console.log('reading', reading);
+      setLyrics(reading);
+
+      if (!readingResponse.ok) {
+        console.error('API request failed:', await readingResponse.text());
+        throw new Error('Failed to get reading from API');
+      }
 
       if (!readingResponse.ok) {
         throw new Error("Failed to fetch reading");
       }
-
 
     } catch (error) {
       console.error("Error handling draw card and fetching reading:", error);
@@ -127,6 +136,8 @@ export default function Home() {
   };
 
   const mintExample = async () => {
+    const { web3FromSource } = await import('@polkadot/extension-dapp');
+
     const to =
       "0x726db3a23fc98b838572bfcc641776dd9f510071f400d77fac526266c0fcdca7";
     const token_metadata = {
@@ -137,7 +148,7 @@ export default function Home() {
     };
     const vnft = new Program(gearApi, VNFT_PROGRAM_ID);
     const transaction = vnft.vnft.mint(to, token_metadata);
-    const injector = await (window as any).web3FromSource(selectedAccount.meta.source);
+    const injector = await web3FromSource(selectedAccount.meta.source);
     transaction.withAccount(selectedAccount.address, {
       signer: injector.signer,
     });
@@ -155,7 +166,7 @@ export default function Home() {
 
   return (
     <main
-      className={`flex h-screen flex-col items-center justify-between w-full relative ${lyrics && ques ? 'py-40' : 'py-60'}`}
+      className={`flex h-screen flex-col items-center justify-between w-full relative ${lyrics && ques ? 'py-40' : 'py-60'} overflow-hidden` }
       style={{
         backgroundImage: (lyrics && ques)
           ? "url(/profilebg.png)"
@@ -256,7 +267,7 @@ export default function Home() {
           )}
 
           { isConnected && (
-            <Connected isConnected={isConnected} lyrics={lyrics}  getAi={handleDrawCardAndFetchreading}/>
+            <Connected isConnected={isConnected} lyrics={lyrics}  getAi={handleDrawCardAndFetchreading} mint={mintExample}/>
           )}
 
         </div>

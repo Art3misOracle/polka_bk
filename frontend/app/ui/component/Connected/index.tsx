@@ -14,9 +14,10 @@ interface ConnectedProps {
     isConnected: boolean;
     lyrics: string;
     getAi: (description: string) => void;
+    mint: () => void;
 }
 
-const Connected: React.FC<ConnectedProps> = ({ isConnected, lyrics, getAi }) => {
+const Connected: React.FC<ConnectedProps> = ({ isConnected, lyrics, getAi, mint }) => {
     const [selectedCardIndex, setSelectedCardIndex] = useState<number | null>(null);
     const [flippedCard, setFlippedCard] = useState<number | null>(null);
     const [description, setDescription] = useState<string>("");
@@ -35,6 +36,7 @@ const Connected: React.FC<ConnectedProps> = ({ isConnected, lyrics, getAi }) => 
 
     const seeMyFate = () => {
         setShowFate(true);
+        setButtonMoved(true);
     }
 
     const handleCardClick = (index: number) => {
@@ -62,12 +64,23 @@ const Connected: React.FC<ConnectedProps> = ({ isConnected, lyrics, getAi }) => 
         }
     };
 
+    const resetToInitialState = () => {
+        setSelectedCardIndex(null);
+        setFlippedCard(null);
+        setDescription("");
+        setShowCards(false);
+        setShowDialog(true);
+        setIsLoading(false);
+        setButtonMoved(false);
+        setShowFate(false);
+    };
+
     if (!isConnected || lyrics) {
         return null;
     }
 
     return (
-        <div className="z-10 flex justify-center">
+        <div className="z-10 flex justify-center relative ">
             {showDialog && (
                 <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center backdrop-blur-md z-50">
                     <div className="bg-gradient-to-br from-gray-900 to-black p-12 rounded-3xl border-2 border-gray-700 shadow-2xl max-w-3xl w-full transform transition-all duration-300 ease-in-out hover:scale-105">
@@ -93,23 +106,32 @@ const Connected: React.FC<ConnectedProps> = ({ isConnected, lyrics, getAi }) => 
                     <div className="text-white text-2xl">Loading...</div>
                 </div>
             )}
-            {/* {showFate && (
-                <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center backdrop-blur-md z-50">
-                    <div>
-                        <Image src={ManImg} alt="Man" width={230} height={230} />
+            {showFate && (
+                <div className="flex justify-center items-center absolute -bottom-32 -left-32 w-full h-full animate-fadeIn">
+                    <div className="animate-fadeIn" style={{ animationDelay: '0.2s' }}>
+                        <Image src={ManImg} alt="Man" width={270}/>
                     </div>
-                    <div>
-                        <Image src={DialogImg} alt="Dialog" width={666} height={340} />
-                        <div className='flex gap-10'>
-                            <Image src={BtnStart} alt="Btn" width={220} height={60} />
-                            <div className='relative w-[240px] h-[240px] flex items-center justify-center'>
-                                <Image src={BtnSvg} alt="Btn" layout="fill" objectFit="contain" />
-                                <span className="relative z-10 text-white font-bold">Mint</span>
+                    <div className="animate-fadeIn flex flex-col items-center" style={{ animationDelay: '0.4s' }}>
+                        <Image src={DialogImg} alt="Dialog" width={840} height={420} />
+                        <div className='flex gap-6 -mt-16'>
+                            <div 
+                                className='relative w-[240px] h-[240px] flex items-center justify-center animate-fadeIn cursor-pointer' 
+                                style={{ animationDelay: '0.6s' }}
+                                onClick={resetToInitialState}
+                            >
+                                <Image src={BtnSvg} alt="Btn" layout="fill" objectFit="contain" draggable={false} />
+                                <span className="relative z-10 text-xl text-white font-bold">Start again</span>
+                            </div>
+                            <div className='relative w-[240px] h-[240px] flex items-center justify-center animate-fadeIn cursor-pointer' style={{ animationDelay: '0.8s' }}
+                                onClick={mint}
+                            >
+                                <Image src={BtnSvg} alt="Btn" layout="fill" objectFit="contain" draggable={false}/>
+                                <span className="relative z-10 text-xl text-white font-bold">Mint</span>
                             </div>
                         </div>
                     </div>
                 </div>
-            )} */}
+            )}
             {showCards && (
                 <div className="relative flex items-center gap-10 mt-20">
                     {[1, 2, 3, 4, 5, 6].map((index) => (
@@ -126,28 +148,33 @@ const Connected: React.FC<ConnectedProps> = ({ isConnected, lyrics, getAi }) => 
                             }}
                             onClick={() => handleCardClick(index)}
                         >
-                            <Image
-                                src={flippedCard === index ? ResImg : CardImg}
-                                alt="Card"
-                                className="w-[186px]"
-                                style={{
-                                    transform: flippedCard === index ? 'rotateY(180deg)' : 'rotateY(0deg)',
-                                    transition: 'transform 1.6s'
-                                }}
-                            />
-                            {
-                                flippedCard === index && (
-                                    <div className='w-full flex justify-center mt-16'>
-                                        <div
-                                            onClick={seeMyFate}
-                                            className={`absolute bottom-0 text-center flex items-center justify-center transition-all duration-1000 ${buttonMoved ? 'translate-x-full opacity-0' : ''
-                                                }`}
-                                        >
-                                            <Image src={ButtonImg} alt="See my Fate" className="w-[240px]" />
+                            <div className={`transition-all duration-1000 ${buttonMoved ? 'translate-x-[400px]' : ''}`}>
+                                <Image
+                                    src={flippedCard === index ? ResImg : CardImg}
+                                    alt="Card"
+                                    className="w-[186px] transition-all duration-1000"
+                                    style={{
+                                        transform: flippedCard === index ? 'rotateY(180deg)' : 'rotateY(0deg)',
+                                        transition: 'transform 1.6s'
+                                    }}
+                                />
+                                {
+                                    flippedCard === index && (
+                                        <div className='w-full flex justify-center mt-16'>
+                                            <div
+                                                onClick={seeMyFate}
+                                                className="absolute bottom-0 text-center flex items-center justify-center transition-all duration-1000"
+                                                style={{
+                                                    opacity: buttonMoved ? 0 : 1,
+                                                    transition: 'opacity 1s'
+                                                }}
+                                            >
+                                                <Image src={ButtonImg} alt="See my Fate" className="w-[240px]" />
+                                            </div>
                                         </div>
-                                    </div>
-                                )
-                            }
+                                    )
+                                }
+                            </div>
                         </div>
                     ))}
                 </div>
