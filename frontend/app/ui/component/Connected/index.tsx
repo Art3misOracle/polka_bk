@@ -9,12 +9,13 @@ import ManImg from "@/public/new/man.png";
 import DialogImg from "@/public/new/dialog.svg";
 import BtnSvg from "@/public/new/btn.svg";
 import BtnStart from "@/public/new/image.png";
+import Confetti from 'react-confetti';
 
 interface ConnectedProps {
     isConnected: boolean;
     lyrics: string;
     getAi: (description: string) => void;
-    mint: () => void;
+    mint: () => Promise<boolean>;
 }
 
 const Connected: React.FC<ConnectedProps> = ({ isConnected, lyrics, getAi, mint }) => {
@@ -26,13 +27,13 @@ const Connected: React.FC<ConnectedProps> = ({ isConnected, lyrics, getAi, mint 
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [buttonMoved, setButtonMoved] = useState<boolean>(false);
     const [showFate, setShowFate] = useState<boolean>(false);
+    const [showConfetti, setShowConfetti] = useState<boolean>(false);
+
     useEffect(() => {
-        if (isConnected ) {
+        if (isConnected) {
             setShowDialog(true);
-            
         }
     }, [isConnected]);
-
 
     const seeMyFate = () => {
         setShowFate(true);
@@ -73,14 +74,24 @@ const Connected: React.FC<ConnectedProps> = ({ isConnected, lyrics, getAi, mint 
         setIsLoading(false);
         setButtonMoved(false);
         setShowFate(false);
+        setShowConfetti(false);
     };
 
-    if (!isConnected ) {
+    const handleMint = async () => {
+        const success = await mint();
+        if (success) {
+            setShowConfetti(true);
+            setTimeout(() => setShowConfetti(false), 5000); // 5秒后停止撒花
+        }
+    };
+
+    if (!isConnected) {
         return null;
     }
 
     return (
         <div className="z-10 flex justify-center relative ">
+            {showConfetti && <Confetti />}
             {showDialog && (
                 <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center backdrop-blur-md z-50">
                     <div className="bg-gradient-to-br from-gray-900 to-black p-12 rounded-3xl border-2 border-gray-700 shadow-2xl max-w-3xl w-full transform transition-all duration-300 ease-in-out hover:scale-105">
@@ -115,8 +126,6 @@ const Connected: React.FC<ConnectedProps> = ({ isConnected, lyrics, getAi, mint 
                         <div className="relative">
                             <Image src={DialogImg} alt="Dialog" width={840} height={420} />
                             <div className="absolute inset-0 flex items-center justify-center pl-12 pr-4">
-                                {/* Content to be placed on top of the dialog background */}
-                                {/* You can add text or other elements here */}
                                 <div className="text-[#32CEFF] text-2xl">{lyrics}</div>
                             </div>
                         </div>
@@ -130,7 +139,7 @@ const Connected: React.FC<ConnectedProps> = ({ isConnected, lyrics, getAi, mint 
                                 <span className="relative z-10 text-xl text-white font-bold">Start again</span>
                             </div>
                             <div className='relative w-[240px] h-[240px] flex items-center justify-center animate-fadeIn cursor-pointer' style={{ animationDelay: '0.8s' }}
-                                onClick={mint}
+                                onClick={handleMint}
                             >
                                 <Image src={BtnSvg} alt="Btn" layout="fill" objectFit="contain" draggable={false}/>
                                 <span className="relative z-10 text-xl text-white font-bold">Mint</span>
@@ -186,7 +195,6 @@ const Connected: React.FC<ConnectedProps> = ({ isConnected, lyrics, getAi, mint 
                     ))}
                 </div>
             )}
-
         </div>
     );
 };

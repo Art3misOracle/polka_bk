@@ -266,7 +266,15 @@ export default function Home() {
           )}
 
           { isConnected && (
-            <Connected isConnected={isConnected} lyrics={lyrics}  getAi={handleDrawCardAndFetchreading} mint={mintExample}/>
+            <Connected 
+              isConnected={isConnected} 
+              lyrics={lyrics}  
+              getAi={handleDrawCardAndFetchreading} 
+              mint={async () => {
+                await mintExample();
+                return true;
+              }}
+            />
           )}
 
         </div>
