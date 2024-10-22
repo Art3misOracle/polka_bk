@@ -1,5 +1,11 @@
 import '@/app/ui/global.css';
-import Head from 'next/head';
+import { Irish_Grover } from 'next/font/google'
+
+const irishGrover = Irish_Grover({
+  weight: '400',
+  subsets: ['latin'],
+})
+
 export default function RootLayout({
   children,
 }: {
@@ -7,7 +13,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body className={irishGrover.className}>{children}</body>
     </html>
   );
 }

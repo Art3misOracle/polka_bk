@@ -27,11 +27,11 @@ const Connected: React.FC<ConnectedProps> = ({ isConnected, lyrics, getAi, mint 
     const [buttonMoved, setButtonMoved] = useState<boolean>(false);
     const [showFate, setShowFate] = useState<boolean>(false);
     useEffect(() => {
-        if (isConnected && !lyrics) {
+        if (isConnected ) {
             setShowDialog(true);
             
         }
-    }, [isConnected, lyrics]);
+    }, [isConnected]);
 
 
     const seeMyFate = () => {
@@ -75,7 +75,7 @@ const Connected: React.FC<ConnectedProps> = ({ isConnected, lyrics, getAi, mint 
         setShowFate(false);
     };
 
-    if (!isConnected || lyrics) {
+    if (!isConnected ) {
         return null;
     }
 
@@ -112,7 +112,14 @@ const Connected: React.FC<ConnectedProps> = ({ isConnected, lyrics, getAi, mint 
                         <Image src={ManImg} alt="Man" width={270}/>
                     </div>
                     <div className="animate-fadeIn flex flex-col items-center" style={{ animationDelay: '0.4s' }}>
-                        <Image src={DialogImg} alt="Dialog" width={840} height={420} />
+                        <div className="relative">
+                            <Image src={DialogImg} alt="Dialog" width={840} height={420} />
+                            <div className="absolute inset-0 flex items-center justify-center pl-12 pr-4">
+                                {/* Content to be placed on top of the dialog background */}
+                                {/* You can add text or other elements here */}
+                                <div className="text-[#32CEFF] text-2xl">{lyrics}</div>
+                            </div>
+                        </div>
                         <div className='flex gap-6 -mt-16'>
                             <div 
                                 className='relative w-[240px] h-[240px] flex items-center justify-center animate-fadeIn cursor-pointer' 

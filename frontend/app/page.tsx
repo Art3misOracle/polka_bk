@@ -69,8 +69,7 @@ export default function Home() {
       });
 
       const readingData = await readingResponse.json();
-      const reading = readingData
-      console.log('reading', reading);
+      const reading = readingData.choices[0].message.content;
       setLyrics(reading);
 
       if (!readingResponse.ok) {
