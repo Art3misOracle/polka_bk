@@ -28,6 +28,7 @@ const Connected: React.FC<ConnectedProps> = ({ isConnected, lyrics, getAi }) => 
     useEffect(() => {
         if (isConnected && !lyrics) {
             setShowDialog(true);
+            
         }
     }, [isConnected, lyrics]);
 
