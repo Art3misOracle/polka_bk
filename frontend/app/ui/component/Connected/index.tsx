@@ -2,13 +2,13 @@
 
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
-import CardImg from "../../../public/new/card.png";
-import ResImg from "../../../public/new/res.png";
-import ButtonImg from "../../../public/new/button-fate.png";
-import ManImg from "../../../public/new/man.png";
-import DialogImg from "../../../public/new/dialog.svg";
-import BtnSvg from "../../../public/new/btn.svg";
-import BtnStart from "../../../public/new/image.png";
+import CardImg from "@/public/new/card.png";
+import ResImg from "@/public/new/res.png";
+import ButtonImg from "@/public/new/button-fate.png";
+import ManImg from "@/public/new/man.png";
+import DialogImg from "@/public/new/dialog.svg";
+import BtnSvg from "@/public/new/btn.svg";
+import BtnStart from "@/public/new/image.png";
 
 interface ConnectedProps {
     isConnected: boolean;

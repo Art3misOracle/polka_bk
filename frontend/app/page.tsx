@@ -1,22 +1,17 @@
 "use client";
 import Image from "next/image";
 import Link from "next/link";
-import Navbar from "../../components/Navbar";
 import React, { useEffect, useState } from 'react';
-import { ethers } from 'ethers';
-import CatImg from "../../public/new/cat.png"
-import ChatBox from "../../public/new/chat-box.png"
-import ButtonImg from "../../public/new/button-star.png"
-import CardImg from "../../public/new/card.png"
-import contractABI from "../../abi/abi.json"
-import animation1 from "../../public/Animation/AnimationFire.json"
-import animation2 from "../../public/Animation/AnimationFirework.json"
-import LottieAnimation from "../component/LottieAnimation";
+import CatImg from "@/public/new/cat.png"
+import ChatBox from "@/public/new/chat-box.png"
+import ButtonImg from "@/public/new/button-star.png"
+import animation1 from "@/public/Animation/AnimationFire.json"
+import LottieAnimation from "@/app/ui/component/LottieAnimation";
 import { GearApi } from "@gear-js/api";
-import Connected from "../component/Connected";
+import Connected from "@/app/ui/component/Connected";
 import dynamic from 'next/dynamic';
 
-import { Program } from "./lib";
+import { Program } from "@/app/lib";
 
 const VNFT_PROGRAM_ID =
   "0xbb164a2a6f53a17cf06624621a7d94d41526e3806616332a02ccfe4d90d69ed8";
@@ -26,14 +21,14 @@ export default function Home() {
   const [ques, setques] = useState(false);
   const [lyrics, setLyrics] = useState("");
 
-  const [gearApi, setGearApi] = useState(null);
-  const [accounts, setAccounts] = useState([]);
-  const [selectedAccount, setSelectedAccount] = useState(null);
+  const [gearApi, setGearApi] = useState<any>(null);
+  const [accounts, setAccounts] = useState<any[]>([]);
+  const [selectedAccount, setSelectedAccount] = useState<any>(null);
   const [isConnected, setConnected] = useState(false);
   const [description, setDescription] = useState("");
   const [selectedCardIndex, setSelectedCardIndex] = useState(null);
 
-  const handleDrawCardAndFetchreading = async (description) => {
+  const handleDrawCardAndFetchreading = async (description: string) => {
     setLoading(true);
 
     try {
@@ -53,7 +48,7 @@ export default function Home() {
         messages: [
           {
             role: "user",
-            content: `You are a Major Arcana Tarot reader. Client asks this question “${description}” and draws the “${card}” card in “${position}” position. Interpret to the client in no more than 100 words.`,
+            content: `You are a Major Arcana Tarot reader. Client asks this question "${description}" and draws the "${card}" card in "${position}" position. Interpret to the client in no more than 100 words.`,
           },
         ],
       };
@@ -142,7 +137,7 @@ export default function Home() {
     };
     const vnft = new Program(gearApi, VNFT_PROGRAM_ID);
     const transaction = vnft.vnft.mint(to, token_metadata);
-    const injector = await web3FromSource(selectedAccount.meta.source);
+    const injector = await (window as any).web3FromSource(selectedAccount.meta.source);
     transaction.withAccount(selectedAccount.address, {
       signer: injector.signer,
     });
@@ -152,8 +147,8 @@ export default function Home() {
     console.log("VNFT minted successfully");
   };
 
-  const handleAccountChange = (event) => {
-    const account = accounts.find((acc) => acc.address === event.target.value);
+  const handleAccountChange = (event: any) => {
+    const account = accounts.find((acc: any) => acc.address === event.target.value);
     setSelectedAccount(account);
   };
 
@@ -212,7 +207,7 @@ export default function Home() {
                     value={selectedAccount?.address || ""}
                     className="w-full border border-gray-300 p-2 rounded-md focus:ring-blue-500 focus:border-blue-500"
                   >
-                    {accounts.map((account) => (
+                    {accounts.map((account: any) => (
                       <option key={account.address} value={account.address}>
                         {account.meta.name || account.address}
                       </option>
