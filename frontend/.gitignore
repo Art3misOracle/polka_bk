@@ -4,7 +4,6 @@
 /node_modules
 /.pnp
 .pnp.js
-.env.local
 # testing
 /coverage
 
@@ -33,4 +32,9 @@ yarn-error.log*
 
 # typescript
 *.tsbuildinfo
-next-env.d.ts
+next-env.d.ts.env.local
+# Ignore all .env files
+.env*
+
+# But don't ignore .env.example if you have one
+!.env.example
