@@ -5,6 +5,10 @@ import Image from 'next/image';
 import CardImg from "../../../public/new/card.png";
 import ResImg from "../../../public/new/res.png";
 import ButtonImg from "../../../public/new/button-fate.png";
+import ManImg from "../../../public/new/man.png";
+import DialogImg from "../../../public/new/dialog.svg";
+import BtnSvg from "../../../public/new/btn.svg";
+import BtnStart from "../../../public/new/image.png";
 
 interface ConnectedProps {
     isConnected: boolean;
@@ -19,12 +23,18 @@ const Connected: React.FC<ConnectedProps> = ({ isConnected, lyrics, getAi }) => 
     const [showCards, setShowCards] = useState<boolean>(false);
     const [showDialog, setShowDialog] = useState<boolean>(false);
     const [isLoading, setIsLoading] = useState<boolean>(false);
-
+    const [buttonMoved, setButtonMoved] = useState<boolean>(false);
+    const [showFate, setShowFate] = useState<boolean>(false);
     useEffect(() => {
         if (isConnected && !lyrics) {
             setShowDialog(true);
         }
     }, [isConnected, lyrics]);
+
+
+    const seeMyFate = () => {
+        setShowFate(true);
+    }
 
     const handleCardClick = (index: number) => {
         if (selectedCardIndex === index) {
@@ -34,6 +44,7 @@ const Connected: React.FC<ConnectedProps> = ({ isConnected, lyrics, getAi }) => 
         } else {
             setSelectedCardIndex(index);
             setFlippedCard(null);
+            setButtonMoved(false);
         }
     };
 
@@ -81,16 +92,33 @@ const Connected: React.FC<ConnectedProps> = ({ isConnected, lyrics, getAi }) => 
                     <div className="text-white text-2xl">Loading...</div>
                 </div>
             )}
+            {showFate && (
+                <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center backdrop-blur-md z-50">
+                    <div>
+                        <Image src={ManImg} alt="Man" width={230} height={230} />
+                    </div>
+                    <div>
+                        <Image src={DialogImg} alt="Dialog" width={666} height={340} />
+                        <div className='flex gap-10'>
+                            <Image src={BtnStart} alt="Btn" width={220} height={60} />
+                            <div className='relative w-[240px] h-[240px] flex items-center justify-center'>
+                                <Image src={BtnSvg} alt="Btn" layout="fill" objectFit="contain" />
+                                <span className="relative z-10 text-white font-bold">Mint</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
             {showCards && (
                 <div className="relative flex items-center gap-10 mt-20">
                     {[1, 2, 3, 4, 5, 6].map((index) => (
                         <div
                             key={index}
                             className={`transform transition duration-700 cursor-pointer ${selectedCardIndex === null
-                                    ? 'hover:-translate-y-10 hover:animate-glowPulse'
-                                    : selectedCardIndex === index
-                                        ? `scale-150 translate-y-[800px] absolute left-1/2 -translate-x-1/2 ${flippedCard !== index ? 'animate-glowPulse' : ''}`
-                                        : 'opacity-0 pointer-events-none'
+                                ? 'hover:-translate-y-10 hover:animate-glowPulse'
+                                : selectedCardIndex === index
+                                    ? `scale-150 translate-y-[800px] absolute left-1/2 -translate-x-1/2 ${flippedCard !== index ? 'animate-glowPulse' : ''}`
+                                    : 'opacity-0 pointer-events-none'
                                 }`}
                             style={{
                                 zIndex: selectedCardIndex === index ? 10 : 1,
@@ -109,7 +137,11 @@ const Connected: React.FC<ConnectedProps> = ({ isConnected, lyrics, getAi }) => 
                             {
                                 flippedCard === index && (
                                     <div className='w-full flex justify-center'>
-                                        <div className="absolute bottom-0 text-center flex items-center justify-center">
+                                        <div
+                                            onClick={seeMyFate}
+                                            className={`absolute bottom-0 text-center flex items-center justify-center transition-all duration-1000 ${buttonMoved ? 'translate-x-full opacity-0' : ''
+                                                }`}
+                                        >
                                             <Image src={ButtonImg} alt="See my Fate" className="w-[240px]" />
                                         </div>
                                     </div>
@@ -119,6 +151,7 @@ const Connected: React.FC<ConnectedProps> = ({ isConnected, lyrics, getAi }) => 
                     ))}
                 </div>
             )}
+
         </div>
     );
 };
