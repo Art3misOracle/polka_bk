@@ -30,7 +30,60 @@ export default function Home() {
   const [accounts, setAccounts] = useState([]);
   const [selectedAccount, setSelectedAccount] = useState(null);
   const [isConnected, setConnected] = useState(false);
+  const [description, setDescription] = useState("");
   const [selectedCardIndex, setSelectedCardIndex] = useState(null);
+
+  const handleDrawCardAndFetchreading = async (description) => {
+    setLoading(true);
+
+    try {
+      if (!gearApi || !selectedAccount) {
+        throw new Error("Gear API or selected account not available");
+      }
+
+      const program = new Program(gearApi, VNFT_PROGRAM_ID);
+      const result = await program.vnft.drawCard(selectedAccount.address);
+      const output = result.split('; ');
+
+      const card = output[0];
+      const position = output[1];
+
+      const requestBody = {
+        model: "gpt-4-turbo",
+        messages: [
+          {
+            role: "user",
+            content: `You are a Major Arcana Tarot reader. Client asks this question “${description}” and draws the “${card}” card in “${position}” position. Interpret to the client in no more than 100 words.`,
+          },
+        ],
+      };
+      let apiKey = process.env.NEXT_PUBLIC_API_KEY;
+      const baseURL = "https://api.openai.com/v1/chat/completions";
+      const headers = new Headers();
+      headers.append("Content-Type", "application/json");
+      headers.append("Accept", "application/json");
+      headers.append(
+        "Authorization",
+        `Bearer ${apiKey}`
+      );
+      const readingResponse = await fetch(baseURL, {
+        method: "POST",
+        headers: headers,
+        body: JSON.stringify(requestBody),
+      });
+      console.log('0---===---000', readingResponse)
+
+      if (!readingResponse.ok) {
+        throw new Error("Failed to fetch reading");
+      }
+
+
+    } catch (error) {
+      console.error("Error handling draw card and fetching reading:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -104,33 +157,6 @@ export default function Home() {
     setSelectedAccount(account);
   };
 
-  const handleDrawCardAndFetchreading = async () => {
-    setLoading(true);
-
-    try {
-      // ... (rest of the function remains unchanged)
-    } catch (error) {
-      console.error("Error handling draw card and fetching reading:", error);
-      setLoading(false)
-    } finally {
-    }
-  };
-
-  const mintreading = async () => {
-    setLoading(true);
-
-    try {
-      // ... (rest of the function remains unchanged)
-    } catch (error) {
-      console.error("Error handling draw card and fetching rap lyrics:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleCardClick = (index) => {
-    setSelectedCardIndex(index);
-  };
 
   return (
     <main
@@ -226,7 +252,7 @@ export default function Home() {
               <button
                 className="absolute bottom-4 left-1/2"
                 onClick={() => {
-                  setques(true);
+                  connectWallet();
                 }}
               >
                 <Image src={ButtonImg} alt="Cat" className="w-[240px]" />
@@ -234,27 +260,8 @@ export default function Home() {
             </div>
           )}
 
-          {!lyrics && isConnected && (
-            <Connected isConnected={isConnected} lyrics={lyrics} />
-// <div className="z-10 flex justify-center">
-            //   <div className="flex items-center gap-10 mt-20 pt-40">
-            //     {[1, 2, 3, 4, 5, 6].map((index) => (
-            //       <div 
-            //         key={index} 
-            //         className={`transform transition duration-700 cursor-pointer ${
-            //           selectedCardIndex === null
-            //             ? 'hover:-translate-y-10 hover:animate-glowPulse'
-            //             : selectedCardIndex === index
-            //             ? 'scale-150 translate-y-6'
-            //             : 'opacity-0 pointer-events-none'
-            //         }`}
-            //         onClick={() => handleCardClick(index)}
-            //       >
-            //         <Image src={CardImg} alt="Cat" className="w-[186px]" />
-            //       </div>
-            //     ))}
-            //   </div>
-            // </div>
+          { isConnected && (
+            <Connected isConnected={isConnected} lyrics={lyrics}  getAi={handleDrawCardAndFetchreading}/>
           )}
 
         </div>
