@@ -12,12 +12,13 @@ interface ConnectedProps {
     getAi: (description: string) => void;
 }
 
-const Connected: React.FC<ConnectedProps> = ({ isConnected, lyrics,getAi }) => {
+const Connected: React.FC<ConnectedProps> = ({ isConnected, lyrics, getAi }) => {
     const [selectedCardIndex, setSelectedCardIndex] = useState<number | null>(null);
     const [flippedCard, setFlippedCard] = useState<number | null>(null);
     const [description, setDescription] = useState<string>("");
     const [showCards, setShowCards] = useState<boolean>(false);
     const [showDialog, setShowDialog] = useState<boolean>(false);
+    const [isLoading, setIsLoading] = useState<boolean>(false);
 
     useEffect(() => {
         if (isConnected && !lyrics) {
@@ -36,11 +37,16 @@ const Connected: React.FC<ConnectedProps> = ({ isConnected, lyrics,getAi }) => {
         }
     };
 
-    const handleSubmitQuestion = () => {
+    const handleSubmitQuestion = async () => {
         if (description.trim()) {
             setShowDialog(false);
-            setShowCards(true);
-            getAi(description)
+            setIsLoading(true);
+            try {
+                await getAi(description);
+            } finally {
+                setIsLoading(false);
+                setShowCards(true);
+            }
         }
     };
 
@@ -68,6 +74,11 @@ const Connected: React.FC<ConnectedProps> = ({ isConnected, lyrics,getAi }) => {
                             Reveal My Fate
                         </button>
                     </div>
+                </div>
+            )}
+            {isLoading && (
+                <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center backdrop-blur-md z-50">
+                    <div className="text-white text-2xl">Loading...</div>
                 </div>
             )}
             {showCards && (
