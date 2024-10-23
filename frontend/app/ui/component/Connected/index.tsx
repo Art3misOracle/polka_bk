@@ -10,15 +10,38 @@ import DialogImg from "@/public/new/dialog.svg";
 import BtnSvg from "@/public/new/btn.svg";
 import BtnStart from "@/public/new/image.png";
 import Confetti from 'react-confetti';
+import res0 from "@/public/card/0.png"
+import res1 from "@/public/card/1.png"
+import res2 from "@/public/card/2.png"
+import res3 from "@/public/card/3.png"
+import res4 from "@/public/card/4.png"
+import res5 from "@/public/card/5.png"
+import res6 from "@/public/card/6.png"
+import res7 from "@/public/card/7.png"
+import res8 from "@/public/card/8.png"
+import res9 from "@/public/card/9.png"
+import res10 from "@/public/card/10.png"
+import res11 from "@/public/card/11.png"
+import res12 from "@/public/card/12.png"
+import res13 from "@/public/card/13.png"
+import res14 from "@/public/card/14.png"
+import res15 from "@/public/card/15.png"
+import res16 from "@/public/card/16.png"
+import res17 from "@/public/card/17.png"
+import res18 from "@/public/card/18.png"
+import res19 from "@/public/card/19.png"
+import res20 from "@/public/card/20.png"
+import res21 from "@/public/card/21.png"
 
 interface ConnectedProps {
     isConnected: boolean;
     lyrics: string;
+    cardNumber: string;
     getAi: (description: string) => void;
     mint: (description: string) => Promise<boolean>;
 }
 
-const Connected: React.FC<ConnectedProps> = ({ isConnected, lyrics, getAi, mint }) => {
+const Connected: React.FC<ConnectedProps> = ({ isConnected, lyrics, cardNumber, getAi, mint }) => {
     const [selectedCardIndex, setSelectedCardIndex] = useState<number | null>(null);
     const [flippedCard, setFlippedCard] = useState<number | null>(null);
     const [description, setDescription] = useState<string>("");
@@ -28,12 +51,49 @@ const Connected: React.FC<ConnectedProps> = ({ isConnected, lyrics, getAi, mint 
     const [buttonMoved, setButtonMoved] = useState<boolean>(false);
     const [showFate, setShowFate] = useState<boolean>(false);
     const [showConfetti, setShowConfetti] = useState<boolean>(false);
+    const resImg = [res0, res1, res2, res3, res4, res5, res6, res7, res8, res9, res10, res11, res12, res13, res14, res15, res16, res17, res18, res19, res20, res21];
+    const getCardImage = (cardNumber: string): any => {
+        console.log(cardNumber,'====----==');
+        console.log(romanToInt(cardNumber),'====----==');
+        const index = romanToInt(cardNumber);
+        return resImg[index];
+    };
 
+    const romanToInt = (roman: string): number => {
+        const romanValues: { [key: string]: number } = {
+            'I': 1,
+            'V': 5,
+            'X': 10,
+            'L': 50,
+            'C': 100,
+            'D': 500,
+            'M': 1000
+        };
+        
+        let result = 0;
+        let prevValue = 0;
+        
+        for (let i = roman.length - 1; i >= 0; i--) {
+            const currentValue = romanValues[roman[i]];
+            if (currentValue >= prevValue) {
+                result += currentValue;
+            } else {
+                result -= currentValue;
+            }
+            prevValue = currentValue;
+        }
+        
+        return result;
+    };
     useEffect(() => {
         if (isConnected) {
             setShowDialog(true);
         }
     }, [isConnected]);
+
+    useEffect(() => {
+        console.log(`https://ipfs.io/ipfs/QmZiH2qWib68hfusXyT7QHGB8M24nfRrB1nDLQeZy6jQVz/${cardNumber}.png`,'====----');
+    }, [cardNumber]);
 
     const seeMyFate = () => {
         setShowFate(true);
@@ -165,9 +225,12 @@ const Connected: React.FC<ConnectedProps> = ({ isConnected, lyrics, getAi, mint 
                             onClick={() => handleCardClick(index)}
                         >
                             <div className={`transition-all duration-1000 ${buttonMoved ? 'translate-x-[400px]' : ''}`}>
+                                
                                 <Image
-                                    src={flippedCard === index ? ResImg : CardImg}
+                                    src={flippedCard === index ? getCardImage(cardNumber) : CardImg}
                                     alt="Card"
+                                    width={282}
+                                    height={420}
                                     className="w-[186px] transition-all duration-1000"
                                     style={{
                                         transform: flippedCard === index ? 'rotateY(180deg)' : 'rotateY(0deg)',

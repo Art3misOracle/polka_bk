@@ -19,6 +19,7 @@ export default function Home() {
   const [ques, setques] = useState(false);
   const [lyrics, setLyrics] = useState("");
   const [card, setCard] = useState("");
+  const [cardNumber, setCardNumber] = useState(0);
   const [gearApi, setGearApi] = useState<any>(null);
   const [accounts, setAccounts] = useState<any[]>([]);
   const [selectedAccount, setSelectedAccount] = useState<any>(null);
@@ -36,7 +37,8 @@ export default function Home() {
       const result = await program.vnft.drawCard(selectedAccount.address);
       const output = result.split('; ');
 
-      const card = output[0];
+      const card = output[0].split(' ')[0];
+  
       setCard(card);
       const position = output[1];
 
@@ -139,11 +141,11 @@ export default function Home() {
 
     const to =
       "0x726db3a23fc98b838572bfcc641776dd9f510071f400d77fac526266c0fcdca7";
-    const randomNumber = Math.floor(Math.random() * 22); // Generate a random number between 0 and 21
+      
     const token_metadata = {
       name: card,
       description: description,
-      media: `ipfs://bafybeigtyace3x4a65spsaaagbhsbanq5qgntk5pqpdum67gvaqp4cj5uy/${randomNumber}.png`,
+      media: `ipfs://bafybeigtyace3x4a65spsaaagbhsbanq5qgntk5pqpdum67gvaqp4cj5uy/${cardNumber}.png`,
       reference:lyrics ,
     };
     const vnft = new Program(gearApi, VNFT_PROGRAM_ID);
@@ -168,9 +170,7 @@ export default function Home() {
     <main
       className={`flex h-screen flex-col items-center justify-between w-full relative ${lyrics && ques ? 'py-40' : 'py-60'} overflow-hidden` }
       style={{
-        backgroundImage: (lyrics && ques)
-          ? "url(/profilebg.png)"
-          : (isConnected)
+        backgroundImage: (isConnected)
             ? "url(/web_bg.png)"
             : "url(/web_bg.png)",
         backgroundPosition: "center",
@@ -270,6 +270,7 @@ export default function Home() {
             <Connected 
               isConnected={isConnected} 
               lyrics={lyrics}  
+              cardNumber={card}
               getAi={handleDrawCardAndFetchreading} 
               mint={async (description: string) => {
                 await mintExample(description);
