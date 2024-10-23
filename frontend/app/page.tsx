@@ -18,7 +18,7 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [ques, setques] = useState(false);
   const [lyrics, setLyrics] = useState("");
-
+  const [card, setCard] = useState("");
   const [gearApi, setGearApi] = useState<any>(null);
   const [accounts, setAccounts] = useState<any[]>([]);
   const [selectedAccount, setSelectedAccount] = useState<any>(null);
@@ -37,6 +37,7 @@ export default function Home() {
       const output = result.split('; ');
 
       const card = output[0];
+      setCard(card);
       const position = output[1];
 
       const requestBody = {
@@ -53,7 +54,6 @@ export default function Home() {
         console.error('API key is not set. Make sure NEXT_PUBLIC_API_KEY is defined in your .env.local file.');
         throw new Error('API key is not set');
       }
-      console.log('apiKey', apiKey);
       const baseURL = "https://api.openai.com/v1/chat/completions";
       const headers = new Headers();
       headers.append("Content-Type", "application/json");
@@ -134,16 +134,17 @@ export default function Home() {
     }
   };
 
-  const mintExample = async () => {
+  const mintExample = async (description: string) => {
     const { web3FromSource } = await import('@polkadot/extension-dapp');
 
     const to =
       "0x726db3a23fc98b838572bfcc641776dd9f510071f400d77fac526266c0fcdca7";
+    const randomNumber = Math.floor(Math.random() * 22); // Generate a random number between 0 and 21
     const token_metadata = {
-      name: "I The Magician, upright",
-      description: "this is a sample answer",
-      media: "test_ipfs_url",
-      reference: "test_json",
+      name: card,
+      description: description,
+      media: `ipfs://bafybeigtyace3x4a65spsaaagbhsbanq5qgntk5pqpdum67gvaqp4cj5uy/${randomNumber}.png`,
+      reference:lyrics ,
     };
     const vnft = new Program(gearApi, VNFT_PROGRAM_ID);
     const transaction = vnft.vnft.mint(to, token_metadata);
@@ -270,8 +271,8 @@ export default function Home() {
               isConnected={isConnected} 
               lyrics={lyrics}  
               getAi={handleDrawCardAndFetchreading} 
-              mint={async () => {
-                await mintExample();
+              mint={async (description: string) => {
+                await mintExample(description);
                 return true;
               }}
             />

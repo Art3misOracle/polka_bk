@@ -15,7 +15,7 @@ interface ConnectedProps {
     isConnected: boolean;
     lyrics: string;
     getAi: (description: string) => void;
-    mint: () => Promise<boolean>;
+    mint: (description: string) => Promise<boolean>;
 }
 
 const Connected: React.FC<ConnectedProps> = ({ isConnected, lyrics, getAi, mint }) => {
@@ -78,7 +78,7 @@ const Connected: React.FC<ConnectedProps> = ({ isConnected, lyrics, getAi, mint 
     };
 
     const handleMint = async () => {
-        const success = await mint();
+        const success = await mint(description);
         if (success) {
             setShowConfetti(true);
             setTimeout(() => setShowConfetti(false), 5000); // 5秒后停止撒花
